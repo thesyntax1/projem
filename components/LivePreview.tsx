@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect, useRef } from "react";
-import { Eye, X, RefreshCw, Loader2, ExternalLink } from "lucide-react";
+import { Eye, X, RefreshCw, Loader as Loader2, ExternalLink } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 
 interface LivePreviewProps {

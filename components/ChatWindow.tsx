@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useRef, useEffect } from "react";
-import { Send, Loader2, FileCheck2, Paperclip as PaperclipIcon, Wrench, Play } from "lucide-react";
+import { Send, Loader as Loader2, FileCheck2, Paperclip as PaperclipIcon, Wrench, Play } from "lucide-react";
 import { useAetherStore } from "@/lib/store";
 import { getProvider } from "@/lib/providers";
 import UploadButton from "./UploadButton";

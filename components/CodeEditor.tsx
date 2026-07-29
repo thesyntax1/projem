@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useCallback } from "react";
 import Editor from "@monaco-editor/react";
-import { Save, FileCode2, Loader2, X } from "lucide-react";
+import { Save, FileCode2, Loader as Loader2, X } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 
 interface CodeEditorProps {

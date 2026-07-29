@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
-import { FileText, Image as ImageIcon, FileJson, Loader2, X } from "lucide-react";
+import { FileText, Image as ImageIcon, FileJson, Loader as Loader2, X } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 
 interface FilePreviewProps {

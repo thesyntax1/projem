@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
-import { Brain, Plus, Trash2, X, Loader2 } from "lucide-react";
+import { Brain, Plus, Trash2, X, Loader as Loader2 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 
 interface MemoryItem { id: string; category: string; content: string; importance: number; created_at: string; }

@@ -4,7 +4,7 @@ import { useEffect, useRef, useState } from "react";
 import { Terminal as XTerm } from "@xterm/xterm";
 import { FitAddon } from "@xterm/addon-fit";
 import "@xterm/xterm/css/xterm.css";
-import { Terminal as TerminalIcon, X, Loader2 } from "lucide-react";
+import { Terminal as TerminalIcon, X, Loader as Loader2 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 
 interface TerminalProps {

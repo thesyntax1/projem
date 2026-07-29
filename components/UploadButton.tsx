@@ -1,7 +1,7 @@
 "use client";
 
 import { useRef, useState } from "react";
-import { Paperclip, Loader2 } from "lucide-react";
+import { Paperclip, Loader as Loader2 } from "lucide-react";
 
 export default function UploadButton({
   sessionId,
