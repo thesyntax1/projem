@@ -1,7 +1,7 @@
 import type { Config } from "tailwindcss";
 
 const config: Config = {
-  content: ["./app/**/*.{ts,tsx}", "./components/**/*.{ts,tsx}"],
+  content: ["./app/**/*.{ts,tsx}", "./components/**/*.{ts,tsx}", "./skills/**/*.md"],
   theme: {
     extend: {
       colors: {
@@ -54,7 +54,7 @@ const config: Config = {
       }
     }
   },
-  plugins: []
+  plugins: [require("@tailwindcss/typography")]
 };
 
 export default config;

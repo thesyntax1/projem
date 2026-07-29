@@ -1,17 +1,45 @@
 "use client";
 
 import { useState, useRef, useEffect } from "react";
-import { Send, Loader2, FileCheck2, Paperclip as PaperclipIcon } from "lucide-react";
+import { Send, Loader2, FileCheck2, Paperclip as PaperclipIcon, Wrench, Play } from "lucide-react";
 import { useAetherStore } from "@/lib/store";
 import { getProvider } from "@/lib/providers";
 import UploadButton from "./UploadButton";
+import ThinkingBlock from "./ThinkingBlock";
 
-export default function ChatWindow({ onDiskChanged }: { onDiskChanged: () => void }) {
+function MessageLine({ line }: { line: string }) {
+  if (line.startsWith("📄")) {
+    return (
+      <div className="mt-1 flex items-center gap-1.5 font-mono text-[11px] text-signal">
+        <FileCheck2 size={12} />
+        {line.replace("📄", "").trim()}
+      </div>
+    );
+  }
+  if (line.startsWith("🔧")) {
+    return (
+      <div className="mt-1 flex items-center gap-1.5 font-mono text-[11px] text-plasma-soft">
+        <Wrench size={12} />
+        {line.replace("🔧", "").trim()}
+      </div>
+    );
+  }
+  return <p className="leading-relaxed">{line}</p>;
+}
+
+export default function ChatWindow({
+  onDiskChanged,
+  onOpenLivePreview
+}: {
+  onDiskChanged: () => void;
+  onOpenLivePreview?: (path: string, mode: "edit" | "preview" | "live") => void;
+}) {
   const { sessionId, activeProvider, apiKeys, threads, appendMessage, isSending, setSending } =
     useAetherStore();
   const [input, setInput] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [uploadNote, setUploadNote] = useState<string | null>(null);
+  const [livePreviewPath, setLivePreviewPath] = useState<string | null>(null);
   const scrollRef = useRef<HTMLDivElement>(null);
 
   const messages = threads[activeProvider] || [];
@@ -51,10 +79,21 @@ export default function ChatWindow({ onDiskChanged }: { onDiskChanged: () => voi
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || "Bilinmeyen hata");
 
-      appendMessage(activeProvider, { role: "assistant", content: data.reply });
+      appendMessage(activeProvider, {
+        role: "assistant",
+        content: data.reply,
+        thinking: data.thinking || []
+      });
       if (data.writtenFiles?.length > 0) onDiskChanged();
-      if (data.imagesSeen?.length > 0) {
-        setUploadNote(`Model bu turda ${data.imagesSeen.length} görseli inceledi: ${data.imagesSeen.join(", ")}`);
+
+      // Auto-detect HTML files and offer live preview
+      if (data.writtenFiles?.length > 0) {
+        const htmlFile = data.writtenFiles.find((f: any) =>
+          f.path.endsWith(".html") || f.path.endsWith(".htm")
+        );
+        if (htmlFile) {
+          setLivePreviewPath(htmlFile.path);
+        }
       }
     } catch (err: any) {
       setError(err?.message || "İstek gönderilemedi.");
@@ -81,28 +120,47 @@ export default function ChatWindow({ onDiskChanged }: { onDiskChanged: () => voi
                   : "max-w-[80%] rounded-xl2 bg-panel-soft px-4 py-2.5 text-sm text-chalk"
               }
             >
-              {m.content.split("\n").map((line, idx) =>
-                line.startsWith("📄") ? (
-                  <div key={idx} className="mt-1 flex items-center gap-1.5 font-mono text-[11px] text-signal">
-                    <FileCheck2 size={12} />
-                    {line.replace("📄", "").trim()}
-                  </div>
-                ) : (
-                  <p key={idx} className="leading-relaxed">
-                    {line}
-                  </p>
-                )
+              {m.role === "assistant" && m.thinking && m.thinking.length > 0 && (
+                <ThinkingBlock steps={m.thinking} />
               )}
+              {m.content.split("\n").map((line, idx) => (
+                <MessageLine key={idx} line={line} />
+              ))}
             </div>
           </div>
         ))}
         {isSending && (
-          <div className="flex items-center gap-2 text-xs text-mist">
-            <Loader2 size={13} className="animate-spin" />
-            {provider.label} yanıtlıyor...
+          <div className="space-y-2">
+            <ThinkingBlock steps={[]} isThinking />
+            <div className="flex items-center gap-2 text-xs text-mist">
+              <Loader2 size={13} className="animate-spin" />
+              {provider.label} yanıtlıyor...
+            </div>
           </div>
         )}
       </div>
+
+      {livePreviewPath && (
+        <div className="flex items-center gap-2 border-t border-line px-5 py-2">
+          <Play size={12} className="text-signal" />
+          <span className="text-[11px] text-chalk">{livePreviewPath} hazır</span>
+          <button
+            onClick={() => {
+              onOpenLivePreview?.(livePreviewPath, "live");
+              setLivePreviewPath(null);
+            }}
+            className="btn-plasma text-[11px]"
+          >
+            Canlı önizle
+          </button>
+          <button
+            onClick={() => setLivePreviewPath(null)}
+            className="text-[11px] text-mist hover:text-chalk"
+          >
+            Kapat
+          </button>
+        </div>
+      )}
 
       {error && <div className="border-t border-line px-5 py-2 text-xs text-signal">{error}</div>}
       {uploadNote && (
@@ -115,9 +173,10 @@ export default function ChatWindow({ onDiskChanged }: { onDiskChanged: () => voi
       <div className="flex items-center gap-2 border-t border-line p-3">
         <UploadButton
           sessionId={sessionId}
+          openaiKey={activeProvider === "openai" ? apiKey : undefined}
           onUploaded={({ written, skipped }) => {
             onDiskChanged();
-            const parts = [];
+            const parts: string[] = [];
             if (written.length > 0) parts.push(`${written.length} dosya yüklendi ve okunuyor`);
             if (skipped.length > 0) parts.push(`${skipped.length} dosya atlandı`);
             setUploadNote(parts.length > 0 ? parts.join(" · ") : "Yükleme tamamlandı");

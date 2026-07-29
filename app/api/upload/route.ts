@@ -3,6 +3,12 @@ import AdmZip from "adm-zip";
 import path from "path";
 import { writeBinaryFile, writeFile, buildTree } from "@/lib/virtualDisk";
 import { extractPdfText, extractDocxText } from "@/lib/fileExtract";
+import { indexDocument } from "@/lib/vectorStore";
+
+const READABLE_EXT = new Set([
+  ".ts", ".tsx", ".js", ".jsx", ".json", ".md", ".mdx", ".css", ".scss",
+  ".html", ".txt", ".yml", ".yaml", ".py", ".sql", ".sh", ".xml", ".csv"
+]);
 
 export const runtime = "nodejs";
 
@@ -19,16 +25,21 @@ function sanitizeEntryName(name: string): string {
  * context.ts, taranabilir metin dosyaları arasında PDF/DOCX içeriğini
  * de otomatik olarak modele okutur.
  */
-async function ingestFile(sessionId: string, relPath: string, buffer: Buffer): Promise<void> {
+async function ingestFile(sessionId: string, relPath: string, buffer: Buffer, openaiKey?: string): Promise<void> {
   writeBinaryFile(sessionId, relPath, buffer);
   const ext = path.extname(relPath).toLowerCase();
-
+  let extractedText = "";
   if (ext === ".pdf") {
-    const text = await extractPdfText(buffer);
-    if (text) writeFile(sessionId, `${relPath}.extracted.md`, text);
+    extractedText = await extractPdfText(buffer);
+    if (extractedText) writeFile(sessionId, `${relPath}.extracted.md`, extractedText);
   } else if (ext === ".docx") {
-    const text = await extractDocxText(buffer);
-    if (text) writeFile(sessionId, `${relPath}.extracted.md`, text);
+    extractedText = await extractDocxText(buffer);
+    if (extractedText) writeFile(sessionId, `${relPath}.extracted.md`, extractedText);
+  } else if (READABLE_EXT.has(ext)) {
+    extractedText = buffer.toString("utf-8");
+  }
+  if (extractedText && extractedText.trim().length > 50) {
+    indexDocument(sessionId, relPath, extractedText, openaiKey).catch(() => {});
   }
 }
 
@@ -48,6 +59,7 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "Hiç dosya gönderilmedi." }, { status: 400 });
   }
 
+  const openaiKey = (form.get("openaiKey") as string) || undefined;
   const written: string[] = [];
   const skipped: string[] = [];
 
@@ -72,7 +84,7 @@ export async function POST(req: NextRequest) {
           const clean = sanitizeEntryName(entry.entryName);
           if (!clean) continue;
           const target = `_uploads/${clean}`;
-          await ingestFile(sessionId, target, data);
+          await ingestFile(sessionId, target, data, openaiKey);
           written.push(target);
         }
       } catch {
@@ -87,7 +99,7 @@ export async function POST(req: NextRequest) {
       continue;
     }
     const target = `_uploads/${clean}`;
-    await ingestFile(sessionId, target, buffer);
+    await ingestFile(sessionId, target, buffer, openaiKey);
     written.push(target);
   }
 

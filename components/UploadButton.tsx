@@ -5,10 +5,12 @@ import { Paperclip, Loader2 } from "lucide-react";
 
 export default function UploadButton({
   sessionId,
-  onUploaded
+  onUploaded,
+  openaiKey
 }: {
   sessionId: string;
   onUploaded: (summary: { written: string[]; skipped: string[] }) => void;
+  openaiKey?: string;
 }) {
   const inputRef = useRef<HTMLInputElement>(null);
   const [uploading, setUploading] = useState(false);
@@ -19,6 +21,7 @@ export default function UploadButton({
 
     const form = new FormData();
     form.set("sessionId", sessionId);
+    if (openaiKey) form.set("openaiKey", openaiKey);
     Array.from(fileList).forEach((f) => form.append("files", f));
 
     try {

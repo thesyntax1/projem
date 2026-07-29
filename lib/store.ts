@@ -40,7 +40,11 @@ export const useAetherStore = create<AetherState>((set, get) => ({
   sessionId: readSessionId(),
   activeProvider: "openai",
   apiKeys: readApiKeys(),
-  threads: { openai: [], anthropic: [], google: [], groq: [], mistral: [] },
+  threads: {
+    openai: [], anthropic: [], google: [], groq: [], mistral: [],
+    xai: [], deepseek: [], cohere: [], together: [], fireworks: [],
+    openrouter: [], perplexity: []
+  },
   diskTree: [],
   isSending: false,
   setActiveProvider: (id) => set({ activeProvider: id }),

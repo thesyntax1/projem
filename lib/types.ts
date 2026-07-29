@@ -1,4 +1,16 @@
-export type ProviderId = "openai" | "anthropic" | "google" | "groq" | "mistral";
+export type ProviderId =
+  | "openai"
+  | "anthropic"
+  | "google"
+  | "groq"
+  | "mistral"
+  | "xai"
+  | "deepseek"
+  | "cohere"
+  | "together"
+  | "fireworks"
+  | "openrouter"
+  | "perplexity";
 
 export interface ImageAttachment {
   path: string;
@@ -21,6 +33,7 @@ export interface ProviderConfig {
 export interface ChatMessage {
   role: "user" | "assistant";
   content: string;
+  thinking?: string[];
 }
 
 export interface DiskFile {

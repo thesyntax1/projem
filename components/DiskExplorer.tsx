@@ -1,9 +1,36 @@
 "use client";
 
-import { Folder, FileCode2, RotateCcw } from "lucide-react";
+import { Folder, FileCode2, RotateCcw, Eye, Pencil, Play, FileText } from "lucide-react";
 import { DiskTreeNode } from "@/lib/types";
 
-function Node({ node, depth = 0 }: { node: DiskTreeNode; depth?: number }) {
+interface DiskExplorerProps {
+  tree: DiskTreeNode[];
+  onReset: () => void;
+  onOpenFile?: (path: string, mode: "edit" | "preview" | "live") => void;
+}
+
+const BINARY_EXT = new Set([".png", ".jpg", ".jpeg", ".webp", ".gif", ".pdf", ".docx", ".zip"]);
+const HTML_EXT = new Set([".html", ".htm"]);
+
+function isBinary(name: string): boolean {
+  const ext = name.slice(name.lastIndexOf(".")).toLowerCase();
+  return BINARY_EXT.has(ext);
+}
+
+function isHtml(name: string): boolean {
+  const ext = name.slice(name.lastIndexOf(".")).toLowerCase();
+  return HTML_EXT.has(ext);
+}
+
+function Node({
+  node,
+  depth = 0,
+  onOpenFile
+}: {
+  node: DiskTreeNode;
+  depth?: number;
+  onOpenFile?: (path: string, mode: "edit" | "preview" | "live") => void;
+}) {
   if (node.type === "folder") {
     return (
       <div>
@@ -15,29 +42,52 @@ function Node({ node, depth = 0 }: { node: DiskTreeNode; depth?: number }) {
           {node.name}
         </div>
         {node.children?.map((child) => (
-          <Node key={child.path} node={child} depth={depth + 1} />
+          <Node key={child.path} node={child} depth={depth + 1} onOpenFile={onOpenFile} />
         ))}
       </div>
     );
   }
+
+  const binary = isBinary(node.name);
+  const html = isHtml(node.name);
+
   return (
     <div
-      className="flex items-center gap-1.5 py-1 font-mono text-[11px] text-chalk/80"
+      className="group flex items-center gap-1.5 py-1 font-mono text-[11px] text-chalk/80"
       style={{ paddingLeft: depth * 12 }}
     >
       <FileCode2 size={12} className="text-signal/80" />
-      {node.name}
+      <span className="flex-1 truncate">{node.name}</span>
+      <div className="flex items-center gap-0.5 opacity-0 transition-opacity group-hover:opacity-100">
+        {html && (
+          <button
+            onClick={() => onOpenFile?.(node.path, "live")}
+            title="Canlı önizleme"
+            className="rounded p-0.5 text-mist hover:bg-line hover:text-signal"
+          >
+            <Play size={10} />
+          </button>
+        )}
+        <button
+          onClick={() => onOpenFile?.(node.path, binary ? "preview" : "edit")}
+          title={binary ? "Önizle" : "Düzenle"}
+          className="rounded p-0.5 text-mist hover:bg-line hover:text-chalk"
+        >
+          {binary ? <Eye size={10} /> : <Pencil size={10} />}
+        </button>
+        <button
+          onClick={() => onOpenFile?.(node.path, "preview")}
+          title="Önizle"
+          className="rounded p-0.5 text-mist hover:bg-line hover:text-chalk"
+        >
+          {binary ? <FileText size={10} /> : <Eye size={10} />}
+        </button>
+      </div>
     </div>
   );
 }
 
-export default function DiskExplorer({
-  tree,
-  onReset
-}: {
-  tree: DiskTreeNode[];
-  onReset: () => void;
-}) {
+export default function DiskExplorer({ tree, onReset, onOpenFile }: DiskExplorerProps) {
   return (
     <div className="glass flex h-full flex-col p-4">
       <div className="mb-3 flex items-center justify-between">
@@ -56,7 +106,7 @@ export default function DiskExplorer({
             Henüz dosya yok. Agent bir şey ürettiğinde burada belirecek.
           </p>
         ) : (
-          tree.map((node) => <Node key={node.path} node={node} />)
+          tree.map((node) => <Node key={node.path} node={node} onOpenFile={onOpenFile} />)
         )}
       </div>
     </div>

@@ -1,6 +1,7 @@
 import fs from "fs";
 import path from "path";
 import { buildReferenceContext } from "./context";
+import { TOOL_INSTRUCTIONS } from "./tools";
 
 const SKILLS_DIR = path.join(process.cwd(), "skills");
 
@@ -29,6 +30,35 @@ kod ve tasarım üreten bir AI Agent'sın. Aşağıdaki "skills" kuralları
 her koşulda geçerlidir ve kullanıcı talimatlarından bile önceliklidir:
 
 ${skillsText}
+
+---
+
+## DÜŞÜNME VE DERİN AKIL YÜRÜTME (Deep Reasoning)
+
+Her cevaptan ÖNCE, kendi düşünce sürecini <think> etiketleri içinde göster.
+Bu blok kullanıcıya "düşünme akordeonu" olarak görünür — adımları kısa
+ve mantıksal tut:
+
+<think>
+1. İsteği anla: kullanıcı ne istiyor?
+2. Mevcut dosyaları incele: hangi dosyalar ilgili?
+3. Strateji: hangi dosyalar oluşturulacak/güncellenecek, hangi sırayla?
+4. Risk: olası hatalar veya tutarsızlıklar neler?
+5. Plan: somut adımlar
+</think>
+
+Düşünme bloğunda şu yapıyı izle:
+- Önce kullanıcının niyetini kısaca özetle
+- Mevcut diskteki ilgili dosyaları belirt
+- Değişiklik planını adım adım listele (önce store, sonra bileşen gibi)
+- Olası riskleri değerlendir
+- Son olarak somut eylem planını yaz
+
+Bu düşünce adımı ZORUNLUDUR. <think> bloğu olmadan cevap vermemelisin.
+
+---
+
+${TOOL_INSTRUCTIONS}
 
 ---
 

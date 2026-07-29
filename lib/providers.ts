@@ -138,6 +138,174 @@ export const PROVIDERS: ProviderConfig[] = [
       messages: [{ role: "system", content: system }, ...messages]
     }),
     extractText: (json) => json?.choices?.[0]?.message?.content ?? ""
+  },
+  {
+    id: "xai",
+    label: "xAI Grok",
+    model: "grok-4",
+    color: "#E6E6E6",
+    endpoint: "https://api.x.ai/v1/chat/completions",
+    supportsVision: true,
+    buildHeaders: (key) => ({
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${key}`
+    }),
+    buildBody: (messages, system, model, images) => {
+      const targetIdx = lastUserIndex(messages);
+      const apiMessages = messages.map((m, i) => {
+        if (i === targetIdx && images.length > 0) {
+          return {
+            role: m.role,
+            content: [
+              { type: "text", text: m.content },
+              ...images.map((img) => ({
+                type: "image_url",
+                image_url: { url: `data:${img.mime};base64,${img.base64}` }
+              }))
+            ]
+          };
+        }
+        return { role: m.role, content: m.content };
+      });
+      return {
+        model,
+        messages: [{ role: "system", content: system }, ...apiMessages],
+        temperature: 0.6
+      };
+    },
+    extractText: (json) => json?.choices?.[0]?.message?.content ?? ""
+  },
+  {
+    id: "deepseek",
+    label: "DeepSeek",
+    model: "deepseek-chat",
+    color: "#7C8AFF",
+    endpoint: "https://api.deepseek.com/v1/chat/completions",
+    supportsVision: false,
+    buildHeaders: (key) => ({
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${key}`
+    }),
+    buildBody: (messages, system, model) => ({
+      model,
+      messages: [{ role: "system", content: system }, ...messages],
+      temperature: 0.6
+    }),
+    extractText: (json) => json?.choices?.[0]?.message?.content ?? ""
+  },
+  {
+    id: "cohere",
+    label: "Cohere",
+    model: "command-r-plus",
+    color: "#39594D",
+    endpoint: "https://api.cohere.com/v1/chat",
+    supportsVision: false,
+    buildHeaders: (key) => ({
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${key}`
+    }),
+    buildBody: (messages, system, model) => ({
+      model,
+      preamble: system,
+      message: messages[messages.length - 1]?.content || "",
+      chat_history: messages.slice(0, -1).map((m) => ({
+        role: m.role === "user" ? "USER" : "CHATBOT",
+        message: m.content
+      }))
+    }),
+    extractText: (json) => json?.text ?? ""
+  },
+  {
+    id: "together",
+    label: "Together",
+    model: "meta-llama/Llama-3.3-70B-Instruct-Turbo",
+    color: "#0F6FFF",
+    endpoint: "https://api.together.xyz/v1/chat/completions",
+    supportsVision: false,
+    buildHeaders: (key) => ({
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${key}`
+    }),
+    buildBody: (messages, system, model) => ({
+      model,
+      messages: [{ role: "system", content: system }, ...messages],
+      temperature: 0.6
+    }),
+    extractText: (json) => json?.choices?.[0]?.message?.content ?? ""
+  },
+  {
+    id: "fireworks",
+    label: "Fireworks",
+    model: "accounts/fireworks/models/llama-v3p1-70b-instruct",
+    color: "#FF4D2E",
+    endpoint: "https://api.fireworks.ai/inference/v1/chat/completions",
+    supportsVision: false,
+    buildHeaders: (key) => ({
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${key}`
+    }),
+    buildBody: (messages, system, model) => ({
+      model,
+      messages: [{ role: "system", content: system }, ...messages],
+      temperature: 0.6
+    }),
+    extractText: (json) => json?.choices?.[0]?.message?.content ?? ""
+  },
+  {
+    id: "openrouter",
+    label: "OpenRouter",
+    model: "anthropic/claude-3.5-sonnet",
+    color: "#9B8BFF",
+    endpoint: "https://openrouter.ai/api/v1/chat/completions",
+    supportsVision: true,
+    buildHeaders: (key) => ({
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${key}`,
+      "HTTP-Referer": "https://aether-agent.app",
+      "X-Title": "Aether Agent"
+    }),
+    buildBody: (messages, system, model, images) => {
+      const targetIdx = lastUserIndex(messages);
+      const apiMessages = messages.map((m, i) => {
+        if (i === targetIdx && images.length > 0) {
+          return {
+            role: m.role,
+            content: [
+              { type: "text", text: m.content },
+              ...images.map((img) => ({
+                type: "image_url",
+                image_url: { url: `data:${img.mime};base64,${img.base64}` }
+              }))
+            ]
+          };
+        }
+        return { role: m.role, content: m.content };
+      });
+      return {
+        model,
+        messages: [{ role: "system", content: system }, ...apiMessages],
+        temperature: 0.6
+      };
+    },
+    extractText: (json) => json?.choices?.[0]?.message?.content ?? ""
+  },
+  {
+    id: "perplexity",
+    label: "Perplexity",
+    model: "sonar-pro",
+    color: "#20B8CD",
+    endpoint: "https://api.perplexity.ai/chat/completions",
+    supportsVision: false,
+    buildHeaders: (key) => ({
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${key}`
+    }),
+    buildBody: (messages, system, model) => ({
+      model,
+      messages: [{ role: "system", content: system }, ...messages],
+      temperature: 0.6
+    }),
+    extractText: (json) => json?.choices?.[0]?.message?.content ?? ""
   }
 ];
 

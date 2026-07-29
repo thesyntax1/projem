@@ -2,7 +2,7 @@
 const nextConfig = {
   reactStrictMode: true,
   experimental: {
-    serverComponentsExternalPackages: ["archiver"]
+    serverComponentsExternalPackages: ["archiver", "pdf-parse", "mammoth", "@supabase/supabase-js"]
   }
 };
 
